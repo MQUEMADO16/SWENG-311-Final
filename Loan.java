@@ -1,6 +1,6 @@
 import java.util.Calendar;
 
-class Loans{
+public class Loan extends Expense {
     /*
      *Some Loans have Pay on Princicpal options (not pay on the interest accrued and go straight to the source of the interest)
      *Do we want to have that option here at some point?
@@ -17,12 +17,13 @@ class Loans{
     private double yearlyAmount;
 
     private int paymentsPerYear;
-    private int yearsPassed; //Do we want to keep this or no? (it was on the doc)
-    private int yearsToGo; //Get rid of this if you get rid of that^
+    private int yearsPassed;
+    private int yearsToGo;
 
 
-//Constructors
-    public Loans(){
+    //Constructors
+    public Loan() {
+        super.Expense();
         loanType = "";
         interestType = "";
         billCycle = "";
@@ -32,7 +33,9 @@ class Loans{
         yearsPassed = 0;
         yearsToGo = 0;
     }
-    public Loans(double loanSize, double paid, double interest, double owed, String lType, String iType, String billPer, int yrsPassed){
+    public Loan(double amount, String name, boolean recurring, double loanSize, double paid, double interest, double owed, String lType, String iType, String billPer, int yrsPassed) {
+
+        super.Expense(amount, name, recurring);
         loanType = lType; //Will be incorperated at later date
         totalPaid = paid;
         interestRate = interest;
@@ -44,68 +47,99 @@ class Loans{
     }
 
 //Get Functions
-    public double getPaymentsPerYear(){
+    public double getPaymentsPerYear() {
+
         return calcPaymentsPerYear(get);
     }
-    public String getLoanType(){
+
+    public String getLoanType() {
+
         return loanType;
     }
-    public String getInterestType(){
+
+    public String getInterestType() {
+
         return interestType;
     }
-    public String getBillCycle(){
+
+    public String getBillCycle() {
+
         return billCycle;
     }
-    public double getInterestRate(){
+
+    public double getInterestRate() {
+
         return interestRate;
     }
-    public double getTotalPaid(){
+    
+    public double getTotalPaid() {
+        
         return totalPaid;
     }
-    public double getLoanAmount(){
+
+    public double getLoanAmount() {
+
+
         return loanAmount;
     }
-    public double getLeftToPay(){
+
+    public double getLeftToPay() {
+
         return leftToPay;
     }
-    public double getAmountOwed(){
+
+    public double getAmountOwed() {
+
         return amountOwed;
     }
-    public double getYearlyAmount(){
+
+    public double getYearlyAmount() {
+
         return yearlyAmount;
     }
-    public int getYearsPassed(){
+
+    public int getYearsPassed() {
+
         return yearsPassed;
     } 
-    public int getYearsToGo(){
+
+    public int getYearsToGo() {
+
         return yearsToGo;
     } 
 
 //Calculations
-    public void calcYearsToGo(){
+    public void calcYearsToGo() {
+
         yearsToGo = (int)((-1 * Math.log(((1 - interestRate * leftToPay)/ amountOwed))/Math.log(1 + interestRate)/paymentsPerYear));
     }
 
-    public void calcPaymentsPerYear(){
+    public void calcPaymentsPerYear() {
+
         switch (billCycle){
+
             case "Monthly":
                 this.paymentsPerYear = 12;
             break;
+
             case "Weekly":
                 this.paymentsPerYear = 52;
             break;
+            
             default:
                 this.paymentsPerYear = 0;
             break;
         }
     }
 
-    public void calculateEstimatedYearlyAmount(){ //Does not consider payments done
+    public void calculateEstimatedYearlyAmount() { //Does not consider payments done
+
         getPaymentsPerYear();
         this.yearlyAmount = amountOwed * ((Math.pow((1 + interestRate), paymentsPerYear) - 1)/interestRate);
     }
 
-    public void setTotalPaid(int payment){
+    public void setTotalPaid(int payment) {
+
         this.totalPaid += payment;
     }
 
