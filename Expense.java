@@ -61,9 +61,8 @@ public class Expense {
 
     public void printExpense() {
 
-        System.out.print("Expense name: " + name + "/nAmount: $" + amount);
+        System.out.println("Expense name: " + name + "/nAmount: $" + amount);
         if(recurring) System.out.println("Expense is recurring");
         else System.out.println("Expense is not recurring");
-
     }
 }
