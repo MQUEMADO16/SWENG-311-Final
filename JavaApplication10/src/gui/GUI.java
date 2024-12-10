@@ -172,7 +172,7 @@ public class GUI extends JFrame implements LoginListener {
         memberList.setVisibleRowCount(5);
         JScrollPane memberScrollPane = new JScrollPane(memberList); // Adding scrolling capability for the list
         
-        Font largerFont = new Font("Arial", Font.BOLD, 14); // Adjust the size as needed
+        Font largerFont = new Font("Arial", Font.BOLD, 14);
 
         // Set fonts
         householdNameLabel.setFont(largerFont);
@@ -1219,7 +1219,7 @@ public class GUI extends JFrame implements LoginListener {
         incomePanel.setBorder(BorderFactory.createTitledBorder("Household Incomes"));
         incomePanel.add(incomeScrollPane);
 
-        // Create the table for expenses (only shared attributes)
+        // Create the table for expenses
         String[] expenseColumnNames = {"Expense Name", "Amount", "Date Due", "Recurring"};
         DefaultTableModel expenseTableModel = new DefaultTableModel(expenseColumnNames, 0);
 
@@ -1335,15 +1335,15 @@ public class GUI extends JFrame implements LoginListener {
                         "Total Income: " + budget.getHousehold().calculateMonthlyIncome() + "\n" +
                         "Total Expenses: " + budget.getHousehold().calculateMonthlyExpense() + "\n" +
                         "Savings: " + budget.getHousehold().getSavings().getAmountSaved() + "\n" +
-                        "Needs (50%): " + (budget.getHousehold().calculateMonthlyIncome() * 0.50) + "\n" +
-                        "Wants (30%): " + (budget.getHousehold().calculateMonthlyIncome() * 0.30));
+                        "Needs (50%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.50)) + "\n" +
+                        "Wants (30%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.30)));
             } else if ("Yearly".equals(selectedSummaryType)) {
                 summaryTextArea.setText("YEARLY SUMMARY\n\n" +
                         "Total Income: " + budget.getHousehold().calculateYearlyIncome() + "\n" +
                         "Total Expenses: " + budget.getHousehold().calculateYearlyExpense() + "\n" +
                         "Savings: " + (budget.getHousehold().getSavings().getAmountSaved() * 12) + "\n" +
-                        "Needs (50%): " + (budget.getHousehold().calculateYearlyIncome() * 0.50) + "\n" +
-                        "Wants (30%): " + (budget.getHousehold().calculateYearlyIncome() * 0.30));
+                        "Needs (50%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.50)) + "\n" +
+                        "Wants (30%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.30)));
             }
         });
 

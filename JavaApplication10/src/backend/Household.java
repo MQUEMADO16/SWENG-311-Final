@@ -115,6 +115,15 @@ public class Household {
     }
 
     // Other Methods
+    public boolean isMember(HouseholdMember member) {
+        for (HouseholdMember householdMember : this.members) {
+            if (householdMember.getName() == member.getName()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public HouseholdMember getMember(String name) {
         for(HouseholdMember member : this.members) {
             if (name == member.getName()) {
@@ -125,13 +134,15 @@ public class Household {
     }
     
     public void addMember(HouseholdMember member) {
-        this.members.add(member);
-        for(Expense expense : member.getExpenses()) {
-            this.expenses.add(expense);
-        }
-        if (member instanceof Independent) {
-            for(Income income : ((Independent) member).getIncome()) {
-                this.incomes.add(income);
+        if (!isMember(member)) {
+            this.members.add(member);
+            for(Expense expense : member.getExpenses()) {
+                this.expenses.add(expense);
+            }
+            if (member instanceof Independent) {
+                for(Income income : ((Independent) member).getIncome()) {
+                    this.incomes.add(income);
+                }
             }
         }
     }
@@ -181,6 +192,7 @@ public class Household {
     }
     
     public void fetchExpenses() {
+        expenses.clear();
         for (HouseholdMember member : members) {
             for (Expense expense : member.getExpenses()) {
                 expenses.add(expense);
@@ -189,6 +201,7 @@ public class Household {
     }
     
     public void fetchIncomes() {
+        incomes.clear();
         for (HouseholdMember member : members) {
             if (member instanceof Independent) {
                 for (Income income : ((Independent) member).getIncome()) {
