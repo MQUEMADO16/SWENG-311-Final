@@ -2,8 +2,7 @@ package gui;
 
 import java.awt.*;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.table.DefaultTableModel;
 import backend.*;
 
 public class GUI extends JFrame implements LoginListener {
@@ -50,6 +49,7 @@ public class GUI extends JFrame implements LoginListener {
         JMenuItem menuItemEditHousehold = new JMenuItem("Edit Household");
         JMenuItem menuItemLoadHousehold = new JMenuItem("Load Household");
         JMenuItem menuItemViewBudget = new JMenuItem("View Budget");
+        JMenuItem menuItemSummary = new JMenuItem("View Summary"); // New Summary menu item
 
         // Add Menu Items to Menus
         menu.add(menuItemSave);
@@ -57,6 +57,7 @@ public class GUI extends JFrame implements LoginListener {
         householdMenu.add(menuItemEditHousehold);
         householdMenu.add(menuItemLoadHousehold);
         budgetMenu.add(menuItemViewBudget);
+        budgetMenu.add(menuItemSummary); // Add Summary menu item to Budget menu
 
         // Add Menus to the Menu Bar
         menuBar.add(menu);
@@ -100,7 +101,11 @@ public class GUI extends JFrame implements LoginListener {
         });
 
         menuItemViewBudget.addActionListener(e -> {
-            // Implement the functionality to view the budget
+            switchPanel(createBudgetPanel());
+        });
+
+        menuItemSummary.addActionListener(e -> {
+            switchPanel(createSummaryPanel());
         });
     }
 
@@ -241,8 +246,6 @@ public class GUI extends JFrame implements LoginListener {
 
     public JPanel createHouseholdEditPanel() {
         
-        Household tempHousehold = new Household(household);    // Use if cancel, revert to old version
-        
         // Create the panel for editing the household details
         JPanel householdPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -360,7 +363,6 @@ public class GUI extends JFrame implements LoginListener {
 
         // Action listener for the cancel button
         cancelButton.addActionListener(e -> {
-            household = tempHousehold;
             switchPanel(createMenuPanel(username)); // Cancel and return to the main menu without making changes
         });
 
@@ -1113,29 +1115,45 @@ public class GUI extends JFrame implements LoginListener {
     
     public JPanel createAddIncomePanel(HouseholdMember member) {
         // Create the main panel
-        JPanel addIncomePanel = new JPanel();
-        addIncomePanel.setLayout(new BoxLayout(addIncomePanel, BoxLayout.Y_AXIS));
+        JPanel addIncomePanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between components
 
-        // Create and add source input
+        // Source field
         JLabel sourceLabel = new JLabel("Source:");
         JTextField sourceField = new JTextField(20);
-        addIncomePanel.add(sourceLabel);
-        addIncomePanel.add(sourceField);
 
-        // Create and add amount input
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        addIncomePanel.add(sourceLabel, gbc);
+
+        gbc.gridx = 1;
+        addIncomePanel.add(sourceField, gbc);
+
+        // Amount field
         JLabel amountLabel = new JLabel("Amount:");
         JTextField amountField = new JTextField(20);
-        addIncomePanel.add(amountLabel);
-        addIncomePanel.add(amountField);
 
-        // Create and add frequency input
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        addIncomePanel.add(amountLabel, gbc);
+
+        gbc.gridx = 1;
+        addIncomePanel.add(amountField, gbc);
+
+        // Frequency field
         JLabel frequencyLabel = new JLabel("Frequency (e.g., Monthly, Weekly):");
         JTextField frequencyField = new JTextField(20);
-        addIncomePanel.add(frequencyLabel);
-        addIncomePanel.add(frequencyField);
 
-        // Create Save and Cancel buttons
-        JPanel buttonPanel = new JPanel();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        addIncomePanel.add(frequencyLabel, gbc);
+
+        gbc.gridx = 1;
+        addIncomePanel.add(frequencyField, gbc);
+
+        // Create a panel for the buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton saveButton = new JButton("Save");
         JButton cancelButton = new JButton("Cancel");
 
@@ -1173,12 +1191,166 @@ public class GUI extends JFrame implements LoginListener {
         // Add buttons to the panel
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
-        addIncomePanel.add(buttonPanel);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        addIncomePanel.add(buttonPanel, gbc);
 
         return addIncomePanel;
     }
+    
+    public JPanel createBudgetPanel() {
+        JPanel budgetPanel = new JPanel();
+        budgetPanel.setLayout(new BoxLayout(budgetPanel, BoxLayout.Y_AXIS));
+
+        // Create the table for incomes
+        String[] incomeColumnNames = {"Source", "Amount", "Frequency", "Monthly Amount"};
+        DefaultTableModel incomeTableModel = new DefaultTableModel(incomeColumnNames, 0);
+
+        for (Income income : household.getIncomes()) {
+            Object[] incomeData = {income.getSource(), income.getAmount(), income.getFrequency(), income.calculateMonthlyAmount()};
+            incomeTableModel.addRow(incomeData);
+        }
+
+        JTable incomeTable = new JTable(incomeTableModel);
+        JScrollPane incomeScrollPane = new JScrollPane(incomeTable);
+        incomeScrollPane.setPreferredSize(new Dimension(500, 150));
+        JPanel incomePanel = new JPanel();
+        incomePanel.setBorder(BorderFactory.createTitledBorder("Household Incomes"));
+        incomePanel.add(incomeScrollPane);
+
+        // Create the table for expenses (only shared attributes)
+        String[] expenseColumnNames = {"Expense Name", "Amount", "Date Due", "Recurring"};
+        DefaultTableModel expenseTableModel = new DefaultTableModel(expenseColumnNames, 0);
+
+        for (Expense expense : household.getExpenses()) {
+            Object[] expenseData = {expense.getName(), expense.getAmount(), expense.getDateDue(), expense.isRecurring()};
+            expenseTableModel.addRow(expenseData);
+        }
+
+        JTable expenseTable = new JTable(expenseTableModel);
+        JScrollPane expenseScrollPane = new JScrollPane(expenseTable);
+        expenseScrollPane.setPreferredSize(new Dimension(500, 150));
+        JPanel expensePanel = new JPanel();
+        expensePanel.setBorder(BorderFactory.createTitledBorder("Household Expenses"));
+        expensePanel.add(expenseScrollPane);
+
+        // Add both panels (incomes and expenses) to the main budget panel
+        budgetPanel.add(incomePanel);
+        budgetPanel.add(Box.createVerticalStrut(10));  // Add some space between the two tables
+        budgetPanel.add(expensePanel);
+
+        return budgetPanel;
+    }
+
+    public JPanel createSummaryPanel() {
+        // Create the panel with GridBagLayout
+        JPanel summaryPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Padding between components
+
+        // Title Label
+        JLabel titleLabel = new JLabel("Budget Summary", JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2; // Span across 2 columns
+        gbc.anchor = GridBagConstraints.CENTER;
+        summaryPanel.add(titleLabel, gbc);
+
+        // Options Panel for rule and summary type selection
+        JPanel optionsPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints optionsGbc = new GridBagConstraints();
+        optionsGbc.insets = new Insets(5, 5, 5, 5);
+        optionsGbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Savings Rule Selection
+        JLabel ruleLabel = new JLabel("Select Savings Rule:");
+        optionsGbc.gridx = 0;
+        optionsGbc.gridy = 0;
+        optionsPanel.add(ruleLabel, optionsGbc);
+
+        String[] rules = {"50-30-20", "80-20"};
+        JComboBox<String> ruleComboBox = new JComboBox<>(rules);
+        ruleComboBox.setPreferredSize(new Dimension(120, 25));
+        optionsGbc.gridx = 1;
+        optionsPanel.add(ruleComboBox, optionsGbc);
+
+        // Summary Type Selection
+        JLabel summaryTypeLabel = new JLabel("Select Summary Type:");
+        optionsGbc.gridx = 0;
+        optionsGbc.gridy = 1;
+        optionsPanel.add(summaryTypeLabel, optionsGbc);
+
+        String[] summaryTypes = {"Monthly", "Yearly"};
+        JComboBox<String> summaryTypeComboBox = new JComboBox<>(summaryTypes);
+        summaryTypeComboBox.setPreferredSize(new Dimension(120, 25));
+        optionsGbc.gridx = 1;
+        optionsPanel.add(summaryTypeComboBox, optionsGbc);
+
+        // Add the options panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        summaryPanel.add(optionsPanel, gbc);
+
+        // Generate Button
+        JButton generateButton = new JButton("Generate Summary");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        summaryPanel.add(generateButton, gbc);
+
+        // Text area for displaying the summary
+        JTextArea summaryTextArea = new JTextArea(10, 30);
+        summaryTextArea.setEditable(false);
+        summaryTextArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        summaryTextArea.setLineWrap(true);
+        summaryTextArea.setWrapStyleWord(true);
+        summaryTextArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        summaryTextArea.setAlignmentX(JTextArea.CENTER_ALIGNMENT);
+
+        JScrollPane scrollPane = new JScrollPane(summaryTextArea);
+        scrollPane.setPreferredSize(new Dimension(350, 150));
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        summaryPanel.add(scrollPane, gbc);
+
+        // Action Listener for the Generate Button
+        generateButton.addActionListener(e -> {
+            String selectedRule = (String) ruleComboBox.getSelectedItem();
+            String selectedSummaryType = (String) summaryTypeComboBox.getSelectedItem();
+
+            Budget budget = new Budget(household, selectedRule);
+
+            // Generate the selected summary
+            if ("Monthly".equals(selectedSummaryType)) {
+                summaryTextArea.setText("MONTHLY SUMMARY\n\n" +
+                        "Total Income: " + budget.getHousehold().calculateMonthlyIncome() + "\n" +
+                        "Total Expenses: " + budget.getHousehold().calculateMonthlyExpense() + "\n" +
+                        "Savings: " + budget.getHousehold().getSavings().getAmountSaved() + "\n" +
+                        "Needs (50%): " + (budget.getHousehold().calculateMonthlyIncome() * 0.50) + "\n" +
+                        "Wants (30%): " + (budget.getHousehold().calculateMonthlyIncome() * 0.30));
+            } else if ("Yearly".equals(selectedSummaryType)) {
+                summaryTextArea.setText("YEARLY SUMMARY\n\n" +
+                        "Total Income: " + budget.getHousehold().calculateYearlyIncome() + "\n" +
+                        "Total Expenses: " + budget.getHousehold().calculateYearlyExpense() + "\n" +
+                        "Savings: " + (budget.getHousehold().getSavings().getAmountSaved() * 12) + "\n" +
+                        "Needs (50%): " + (budget.getHousehold().calculateYearlyIncome() * 0.50) + "\n" +
+                        "Wants (30%): " + (budget.getHousehold().calculateYearlyIncome() * 0.30));
+            }
+        });
+
+        return summaryPanel;
+    }
             
-    public static void main(String[] args) {
+    public static void main(String[] args) {  
         new GUI();
     }
 }
