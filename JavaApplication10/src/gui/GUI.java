@@ -393,6 +393,8 @@ public class GUI extends JFrame implements LoginListener {
     }
     
     public JPanel createAddMemberPanel() {
+        mainFrame.setSize(800, 700);
+
         JPanel addMemberPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between components
@@ -410,6 +412,39 @@ public class GUI extends JFrame implements LoginListener {
         // Add and Cancel buttons
         JButton addButton = new JButton("Add Member");
         JButton cancelButton = new JButton("Cancel");
+
+        // Additional fields for dependent and independent
+        JLabel weeklyAllowanceLabel = new JLabel("Weekly Allowance:");
+        JTextField weeklyAllowanceField = new JTextField(20);
+        weeklyAllowanceField.setVisible(false); // Hide initially
+
+        JLabel incomeLabel = new JLabel("Income:");
+        JComboBox<String> incomeComboBox = new JComboBox<>();
+        incomeComboBox.setVisible(false); // Hide initially
+
+        JLabel weeklyDiscretionarySpendLabel = new JLabel("Weekly Discretionary Spend:");
+        JTextField weeklyDiscretionarySpendField = new JTextField(20);
+        weeklyDiscretionarySpendField.setVisible(false); // Hide initially
+
+        // Expenses dropdown for both
+        JLabel expensesLabel = new JLabel("Expense:");
+        JComboBox<String> expensesComboBox = new JComboBox<>();
+        for (Expense expense : household.getExpenses()) {
+            expensesComboBox.addItem(expense.getName());
+        }
+
+        // Expense buttons
+        JButton addExpenseButton = new JButton("Add Expense");
+        JButton editExpenseButton = new JButton("Edit Expense");
+        JButton removeExpenseButton = new JButton("Remove Expense");
+
+        // Income buttons (initially hidden)
+        JButton addIncomeButton = new JButton("Add Income");
+        JButton editIncomeButton = new JButton("Edit Income");
+        JButton removeIncomeButton = new JButton("Remove Income");
+        addIncomeButton.setVisible(false);
+        editIncomeButton.setVisible(false);
+        removeIncomeButton.setVisible(false);
 
         // Add components to the panel
         gbc.gridx = 0;
@@ -434,13 +469,62 @@ public class GUI extends JFrame implements LoginListener {
         gbc.gridx = 1;
         addMemberPanel.add(memberTypeCombo, gbc);
 
-        // Panel for buttons
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        addMemberPanel.add(weeklyAllowanceLabel, gbc);
+
+        gbc.gridx = 1;
+        addMemberPanel.add(weeklyAllowanceField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        addMemberPanel.add(weeklyDiscretionarySpendLabel, gbc);
+
+        gbc.gridx = 1;
+        addMemberPanel.add(weeklyDiscretionarySpendField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        addMemberPanel.add(incomeLabel, gbc);
+
+        gbc.gridx = 1;
+        addMemberPanel.add(incomeComboBox, gbc);
+
+        // Expenses
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        addMemberPanel.add(expensesLabel, gbc);
+
+        gbc.gridx = 1;
+        addMemberPanel.add(expensesComboBox, gbc);
+
+        // Expense buttons panel
+        JPanel expenseButtonPanel = new JPanel(new FlowLayout());
+        expenseButtonPanel.add(addExpenseButton);
+        expenseButtonPanel.add(editExpenseButton);
+        expenseButtonPanel.add(removeExpenseButton);
+
+        gbc.gridx = 1;
+        gbc.gridy = 7;
+        addMemberPanel.add(expenseButtonPanel, gbc);
+
+        // Income buttons panel (hidden initially)
+        JPanel incomeButtonPanel = new JPanel(new FlowLayout());
+        incomeButtonPanel.add(addIncomeButton);
+        incomeButtonPanel.add(editIncomeButton);
+        incomeButtonPanel.add(removeIncomeButton);
+
+        gbc.gridx = 1;
+        gbc.gridy = 8;
+        addMemberPanel.add(incomeButtonPanel, gbc);
+
+        // Panel for main action buttons
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(addButton);
         buttonPanel.add(cancelButton);
 
         gbc.gridx = 1;
-        gbc.gridy = 3;
+        gbc.gridy = 9;
         addMemberPanel.add(buttonPanel, gbc);
 
         // Action listener for the add member button
@@ -455,7 +539,8 @@ public class GUI extends JFrame implements LoginListener {
                     HouseholdMember newMember = null;
 
                     if (memberType.equals("Independent")) {
-                        newMember = new Independent(name, age, 0); // Default weeklyDiscretionSpend = 0
+                        newMember = new Independent(name, age, 0); // Default weeklyDiscretionarySpend = 0
+                        // Handle income and weeklyDiscretionarySpend
                     } else if (memberType.equals("Dependent")) {
                         newMember = new Dependent(name, age, 0); // Default weeklyAllowance = 0
                     }
@@ -476,6 +561,79 @@ public class GUI extends JFrame implements LoginListener {
         // Action listener for the cancel button
         cancelButton.addActionListener(e -> {
             switchPanel(createHouseholdEditPanel()); // Switch back to the household edit panel without adding
+        });
+
+        // Listener to change fields visibility based on selected member type
+        memberTypeCombo.addActionListener(e -> {
+            if ("Independent".equals(memberTypeCombo.getSelectedItem())) {
+                weeklyAllowanceField.setVisible(false);
+                incomeComboBox.setVisible(true); // Show income dropdown
+                weeklyDiscretionarySpendField.setVisible(true);
+                addIncomeButton.setVisible(true); // Show income buttons
+                editIncomeButton.setVisible(true);
+                removeIncomeButton.setVisible(true);
+            } else {
+                weeklyAllowanceField.setVisible(true); // Show weekly allowance for Dependent
+                incomeComboBox.setVisible(false);
+                weeklyDiscretionarySpendField.setVisible(false);
+                addIncomeButton.setVisible(false); // Hide income buttons
+                editIncomeButton.setVisible(false);
+                removeIncomeButton.setVisible(false);
+            }
+        });
+
+        // Action listeners for the expense buttons
+        addExpenseButton.addActionListener(e -> {
+            // Add logic to show a dialog or panel to add an expense
+            // TO BE IMPLEMENTED
+        });
+
+        editExpenseButton.addActionListener(e -> {
+            // Add logic to show a dialog or panel to edit selected expense
+            String selectedExpense = (String) expensesComboBox.getSelectedItem();
+            if (selectedExpense != null) {
+                // Edit selected expense
+                // TO BE IMPLEMENTED
+            }
+        });
+
+        removeExpenseButton.addActionListener(e -> {
+            String selectedExpense = (String) expensesComboBox.getSelectedItem();
+            if (selectedExpense != null) {
+                // Remove selected expense from the list and the member
+                HouseholdMember member = household.getMember(nameField.getText());
+                member.removeExpense(selectedExpense);
+                // Update expensesComboBox by removing the selected expense
+                expensesComboBox.removeItem(selectedExpense);
+                JOptionPane.showMessageDialog(addMemberPanel, "Expense removed successfully!");
+            }
+        });
+        
+        // Action listeners for the income buttons
+        addIncomeButton.addActionListener(e -> {
+            // Add logic to show a dialog or panel to add an expense
+            // TO BE IMPLEMENTED
+        });
+
+        editIncomeButton.addActionListener(e -> {
+            // Add logic to show a dialog or panel to edit selected expense
+            String selectedExpense = (String) expensesComboBox.getSelectedItem();
+            if (selectedExpense != null) {
+                // Edit selected expense
+                // TO BE IMPLEMENTED
+            }
+        });
+
+        removeIncomeButton.addActionListener(e -> {
+            String selectedIncome = (String) incomeComboBox.getSelectedItem();
+            if (selectedIncome != null) {
+                // Remove selected expense from the list and the member
+                Independent member = (Independent) household.getMember(nameField.getText());
+                member.removeIncome(selectedIncome);
+                // Update expensesComboBox by removing the selected expense
+                expensesComboBox.removeItem(selectedIncome);
+                JOptionPane.showMessageDialog(addMemberPanel, "Income removed successfully!");
+            }
         });
 
         return addMemberPanel;

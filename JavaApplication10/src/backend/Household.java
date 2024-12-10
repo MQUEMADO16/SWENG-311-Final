@@ -115,10 +115,26 @@ public class Household {
     
     public void addMember(HouseholdMember member) {
         this.members.add(member);
+        for(Expense expense : member.getExpenses()) {
+            this.expenses.add(expense);
+        }
+        if (member instanceof Independent) {
+            for(Income income : ((Independent) member).getIncome()) {
+                this.incomes.add(income);
+            }
+        }
     }
 
     public void removeMember(HouseholdMember member) {
         this.members.remove(member);
+        for(Expense expense : member.getExpenses()) {
+            this.expenses.remove(expense);
+        }
+        if (member instanceof Independent) {
+            for(Income income : ((Independent) member).getIncome()) {
+                this.incomes.remove(income);
+            }
+        }
     }
 
     public double calculateMonthlyIncome() {
