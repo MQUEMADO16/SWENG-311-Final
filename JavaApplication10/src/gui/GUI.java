@@ -92,7 +92,7 @@ public class GUI extends JFrame implements LoginListener {
         });
 
         menuItemEditHousehold.addActionListener(e -> {
-            switchPanel(createHouseholdPanel());
+            switchPanel(createHouseholdEditPanel());
         });
 
         menuItemLoadHousehold.addActionListener(e -> {
@@ -236,18 +236,26 @@ public class GUI extends JFrame implements LoginListener {
         return menuPanel; // Return the menu panel
     }
 
-    public JPanel createHouseholdPanel() {
-        // Create the panel for entering the household name
+    public JPanel createHouseholdEditPanel() {
+        // Create the panel for editing the household details
         JPanel householdPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between components
 
-        // Label and text field for the household name
+        // Labels and text fields for the household details
         JLabel householdNameLabel = new JLabel("Edit Household Name:");
         JTextField householdNameField = new JTextField(20);
-        JButton submitButton = new JButton("Submit");
+        householdNameField.setText(household.getHouseholdName());
 
-        // Add components to the panel
+        JLabel spendBalanceLabel = new JLabel("Edit Spend Balance:");
+        JTextField spendBalanceField = new JTextField(20);
+        spendBalanceField.setText(String.valueOf(household.getSpendBalance()));
+
+        JLabel savingsBalanceLabel = new JLabel("Edit Savings Balance:");
+        JTextField savingsBalanceField = new JTextField(20);
+        savingsBalanceField.setText(String.valueOf(household.getSavings().getAmountSaved()));
+
+        // Add components for household name
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
@@ -256,24 +264,321 @@ public class GUI extends JFrame implements LoginListener {
         gbc.gridx = 1;
         householdPanel.add(householdNameField, gbc);
 
+        // Add components for spend balance
+        gbc.gridx = 0;
         gbc.gridy = 1;
-        gbc.gridx = 1;
-        householdPanel.add(submitButton, gbc);
+        householdPanel.add(spendBalanceLabel, gbc);
 
-        // Action listener for the submit button
+        gbc.gridx = 1;
+        householdPanel.add(spendBalanceField, gbc);
+
+        // Add components for savings balance
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        householdPanel.add(savingsBalanceLabel, gbc);
+
+        gbc.gridx = 1;
+        householdPanel.add(savingsBalanceField, gbc);
+
+        // Create dropdown for selecting a household member
+        JLabel memberLabel = new JLabel("Select Household Member:");
+        DefaultComboBoxModel<String> memberComboBoxModel = new DefaultComboBoxModel<>();
+        for (HouseholdMember member : household.getMembers()) {
+            memberComboBoxModel.addElement(member.getName());
+        }
+        JComboBox<String> memberComboBox = new JComboBox<>(memberComboBoxModel);
+
+        // Add the combo box for selecting a member
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        householdPanel.add(memberLabel, gbc);
+
+        gbc.gridx = 1;
+        householdPanel.add(memberComboBox, gbc);
+
+        // Buttons for removing, editing, and adding members
+        JButton removeMemberButton = new JButton("Remove Selected Member");
+        JButton editMemberButton = new JButton("Edit Selected Member");
+        JButton addMemberButton = new JButton("Add New Member");
+
+        // Panel for member management buttons
+        JPanel memberButtonsPanel = new JPanel(new FlowLayout());
+        memberButtonsPanel.add(removeMemberButton);
+        memberButtonsPanel.add(editMemberButton);
+        memberButtonsPanel.add(addMemberButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2; // Make buttons span across two columns
+        householdPanel.add(memberButtonsPanel, gbc);
+
+        // Buttons for submit and cancel
+        JButton submitButton = new JButton("Submit Changes");
+        JButton cancelButton = new JButton("Cancel");
+
+        // Add the submit and cancel buttons
+        JPanel submitCancelPanel = new JPanel(new FlowLayout());
+        submitCancelPanel.add(submitButton);
+        submitCancelPanel.add(cancelButton);
+
+        gbc.gridy = 5;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        householdPanel.add(submitCancelPanel, gbc);
+
+        // Action listener for the submit button (saving the household details)
         submitButton.addActionListener(e -> {
             String householdName = householdNameField.getText().trim();
+            String spendBalance = spendBalanceField.getText().trim();
+            String savingsBalance = savingsBalanceField.getText().trim();
 
-            if (!householdName.isEmpty()) {
-                household.setHouseholdName(householdName);  // Apply the name to the household object
-                JOptionPane.showMessageDialog(householdPanel, "Household name updated successfully!");
-                switchPanel(createMenuPanel(username));
+            // Validate input
+            if (!householdName.isEmpty() && !spendBalance.isEmpty() && !savingsBalance.isEmpty()) {
+                try {
+                    double spendBalanceValue = Double.parseDouble(spendBalance);
+                    double savingsBalanceValue = Double.parseDouble(savingsBalance);
+
+                    household.setHouseholdName(householdName);  // Apply name to household object
+                    household.setSpendBalance(spendBalanceValue);
+                    household.getSavings().setAmountSaved(savingsBalanceValue);  // Apply the savings balance
+
+                    JOptionPane.showMessageDialog(householdPanel, "Household details updated successfully!");
+                    switchPanel(createMenuPanel(username));  // Return to the main panel
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(householdPanel, "Please enter valid numeric values for Spend Balance and Savings Balance.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
             } else {
-                JOptionPane.showMessageDialog(householdPanel, "Please enter a valid household name.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(householdPanel, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
+        // Action listener for the cancel button
+        cancelButton.addActionListener(e -> {
+            switchPanel(createMenuPanel(username)); // Cancel and return to the main menu without making changes
+        });
+
+        // Action listener for removing a member
+        removeMemberButton.addActionListener(e -> {
+            String selectedMemberName = (String) memberComboBox.getSelectedItem();
+            if (selectedMemberName != null) {
+                HouseholdMember memberToRemove = null;
+                for (HouseholdMember member : household.getMembers()) {
+                    if (member.getName().equals(selectedMemberName)) {
+                        memberToRemove = member;
+                        break;
+                    }
+                }
+                if (memberToRemove != null) {
+                    household.removeMember(memberToRemove); // Remove member from the household
+                    memberComboBoxModel.removeElement(selectedMemberName);  // Update the combo box
+                    JOptionPane.showMessageDialog(householdPanel, selectedMemberName + " has been removed.");
+                }
+            }
+        });
+
+        // Action listener for editing a member
+        editMemberButton.addActionListener(e -> {
+            String selectedMemberName = (String) memberComboBox.getSelectedItem();
+            if (selectedMemberName != null) {
+                switchPanel(createEditMemberPanel(selectedMemberName));
+            }
+        });
+
+        // Action listener for adding a new member
+        addMemberButton.addActionListener(e -> {
+            switchPanel(createAddMemberPanel());
+        });
+
         return householdPanel;
+    }
+    
+    public JPanel createAddMemberPanel() {
+        JPanel addMemberPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between components
+
+        // Labels and text fields for member details
+        JLabel nameLabel = new JLabel("Name:");
+        JTextField nameField = new JTextField(20);
+
+        JLabel ageLabel = new JLabel("Age:");
+        JTextField ageField = new JTextField(20);
+
+        JLabel memberTypeLabel = new JLabel("Member Type:");
+        JComboBox<String> memberTypeCombo = new JComboBox<>(new String[]{"Independent", "Dependent"});
+
+        // Add and Cancel buttons
+        JButton addButton = new JButton("Add Member");
+        JButton cancelButton = new JButton("Cancel");
+
+        // Add components to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        addMemberPanel.add(nameLabel, gbc);
+
+        gbc.gridx = 1;
+        addMemberPanel.add(nameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        addMemberPanel.add(ageLabel, gbc);
+
+        gbc.gridx = 1;
+        addMemberPanel.add(ageField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        addMemberPanel.add(memberTypeLabel, gbc);
+
+        gbc.gridx = 1;
+        addMemberPanel.add(memberTypeCombo, gbc);
+
+        // Panel for buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(addButton);
+        buttonPanel.add(cancelButton);
+
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        addMemberPanel.add(buttonPanel, gbc);
+
+        // Action listener for the add member button
+        addButton.addActionListener(e -> {
+            String name = nameField.getText().trim();
+            String ageText = ageField.getText().trim();
+            String memberType = (String) memberTypeCombo.getSelectedItem();
+
+            if (!name.isEmpty() && !ageText.isEmpty()) {
+                try {
+                    int age = Integer.parseInt(ageText);
+                    HouseholdMember newMember = null;
+
+                    if (memberType.equals("Independent")) {
+                        newMember = new Independent(name, age, 0); // Default weeklyDiscretionSpend = 0
+                    } else if (memberType.equals("Dependent")) {
+                        newMember = new Dependent(name, age, 0); // Default weeklyAllowance = 0
+                    }
+
+                    if (newMember != null) {
+                        household.addMember(newMember);
+                        JOptionPane.showMessageDialog(addMemberPanel, "Member added successfully!");
+                        switchPanel(createHouseholdEditPanel()); // Switch back to the household edit panel
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(addMemberPanel, "Please enter a valid age.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(addMemberPanel, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Action listener for the cancel button
+        cancelButton.addActionListener(e -> {
+            switchPanel(createHouseholdEditPanel()); // Switch back to the household edit panel without adding
+        });
+
+        return addMemberPanel;
+    }
+
+    public JPanel createEditMemberPanel(String memberName) {
+        HouseholdMember selectedMember = household.getMember(memberName);
+
+        JPanel editMemberPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between components
+
+        // Labels and text fields for member details
+        JLabel nameLabel = new JLabel("Name:");
+        JTextField nameField = new JTextField(20);
+        nameField.setText(selectedMember.getName());
+
+        JLabel ageLabel = new JLabel("Age:");
+        JTextField ageField = new JTextField(20);
+        ageField.setText(String.valueOf(selectedMember.getAge()));
+
+        JLabel memberTypeLabel = new JLabel("Member Type:");
+        JComboBox<String> memberTypeCombo = new JComboBox<>(new String[]{"Independent", "Dependent"});
+        memberTypeCombo.setSelectedItem(selectedMember instanceof Independent ? "Independent" : "Dependent");
+
+        // Layout for adding components
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        editMemberPanel.add(nameLabel, gbc);
+
+        gbc.gridx = 1;
+        editMemberPanel.add(nameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        editMemberPanel.add(ageLabel, gbc);
+
+        gbc.gridx = 1;
+        editMemberPanel.add(ageField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        editMemberPanel.add(memberTypeLabel, gbc);
+
+        gbc.gridx = 1;
+        editMemberPanel.add(memberTypeCombo, gbc);
+
+        // Save and Cancel buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton saveButton = new JButton("Save Changes");
+        JButton cancelButton = new JButton("Cancel");
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        editMemberPanel.add(buttonPanel, gbc);
+
+        // Action listener for the save button
+        saveButton.addActionListener(e -> {
+            String name = nameField.getText().trim();
+            String ageText = ageField.getText().trim();
+            String memberType = (String) memberTypeCombo.getSelectedItem();
+
+            if (!name.isEmpty() && !ageText.isEmpty()) {
+                try {
+                    int age = Integer.parseInt(ageText);
+
+                    // Update the member based on selected type
+                    if (memberType.equals("Independent") && !(selectedMember instanceof Independent)) {
+                        Independent updatedMember = new Independent(name, age, 0); // Default weeklyDiscretionSpend = 0
+                        household.removeMember(selectedMember);
+                        household.addMember(updatedMember);
+                    } else if (memberType.equals("Dependent") && !(selectedMember instanceof Dependent)) {
+                        Dependent updatedMember = new Dependent(name, age, 0); // Default weeklyAllowance = 0
+                        household.removeMember(selectedMember);
+                        household.addMember(updatedMember);
+                    } else {
+                        // If no type change, just update the details
+                        selectedMember.setName(name);
+                        selectedMember.setAge(age);
+                    }
+
+                    JOptionPane.showMessageDialog(editMemberPanel, "Member details updated successfully!");
+                    switchPanel(createHouseholdEditPanel());  // Return to the household edit panel
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(editMemberPanel, "Please enter a valid age.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(editMemberPanel, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Action listener for the cancel button
+        cancelButton.addActionListener(e -> {
+            switchPanel(createHouseholdEditPanel());  // Return to the household edit panel without saving
+        });
+
+        return editMemberPanel;
     }
 
     public static void main(String[] args) {

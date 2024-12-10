@@ -104,6 +104,15 @@ public class Household {
     }
 
     // Other Methods
+    public HouseholdMember getMember(String name) {
+        for(HouseholdMember member : this.members) {
+            if (name == member.getName()) {
+                return member;
+            }
+        }
+        return null;
+    }
+    
     public void addMember(HouseholdMember member) {
         this.members.add(member);
     }
