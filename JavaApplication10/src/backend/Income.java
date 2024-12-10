@@ -1,4 +1,4 @@
-package budgetmanager.backend;
+package backend;
 
 public class Income {
     

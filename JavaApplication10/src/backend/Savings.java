@@ -1,4 +1,4 @@
-package budgetmanager.backend;
+package backend;
 
 public class Savings {
 
@@ -6,6 +6,13 @@ public class Savings {
     private double amountSaved;
     private String towards;
     private double goal;
+    
+    // Default constructor
+    public Savings() {
+        this.amountSaved = 0.0;
+        this.towards = "";
+        this.goal = 0.0;
+    }
 
     // Constructor
     public Savings(double amountSaved, String towards, double goal) {

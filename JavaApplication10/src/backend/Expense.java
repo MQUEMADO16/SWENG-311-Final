@@ -1,4 +1,4 @@
-package budgetmanager.backend;
+package backend;
 
 /*
  *  This is a class that models a single expense of a household member.

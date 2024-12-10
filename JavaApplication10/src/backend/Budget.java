@@ -1,4 +1,4 @@
-package budgetmanager.backend;
+package backend;
 
 import java.util.ArrayList;
 

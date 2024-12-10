@@ -1,4 +1,4 @@
-package budgetmanager.backend;
+package backend;
 
 import java.util.ArrayList;
 
@@ -13,6 +13,18 @@ public class Household {
     private ArrayList<Expense> expenses;
     private double spendBalance;
     private Savings savings;
+    
+    // Default constructor
+    public Household() {
+        this.householdName = "";
+        this.members = new ArrayList<>();
+        this.incomes = new ArrayList<>();
+        this.expenses = new ArrayList<>();
+        this.savings = new Savings();
+        this.monthlyIncome = 0.0;
+        this.monthlyExpense = 0.0;
+        this.spendBalance = 0.0;
+    }
 
     // Constructor
     public Household(String householdName, Savings savings) {

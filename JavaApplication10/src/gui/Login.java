@@ -1,4 +1,4 @@
-package budgetmanager.gui;
+package gui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,18 +55,15 @@ public class Login {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String username = usernameField.getText().toLowerCase();
-                char[] passwordChars = passwordField.getPassword();
-                String password = new String(passwordChars);
+                String password = new String(passwordField.getPassword());
 
-                if (usernames.contains(username) && password.equals("1234")) { // Temp password
+                if (usernames.contains(username) && password.equals("test")) { // Temp password
                     if (listener != null) {
                         listener.onLoginSuccess(username); // Notify listener of successful login
                     }
                     loginFrame.dispose(); // Close login frame
                 } else {
-                    JOptionPane.showMessageDialog(
-                            loginFrame, "Invalid credentials. Try again.", "Login Error", JOptionPane.ERROR_MESSAGE
-                    );
+                    JOptionPane.showMessageDialog(loginFrame, "Invalid credentials. Try again.", "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -131,6 +128,7 @@ public class Login {
         loginFrame.add(submitButton, gbc);
 
         // Finalize frame
+        loginFrame.setLocationRelativeTo(null);
         loginFrame.setSize(600, 500);
         loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         loginFrame.setVisible(true);
