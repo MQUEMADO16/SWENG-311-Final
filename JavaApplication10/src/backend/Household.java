@@ -37,6 +37,17 @@ public class Household {
         this.monthlyExpense = 0.0;
         this.spendBalance = 0.0;
     }
+    
+    public Household(Household house) {
+        this.householdName = house.householdName;
+        this.members = house.members;
+        this.incomes = house.incomes;
+        this.expenses = house.expenses;
+        this.savings = house.savings;
+        this.monthlyIncome = house.monthlyIncome;
+        this.monthlyExpense = house.monthlyExpense;
+        this.spendBalance = house.spendBalance;
+    }
 
     // Getters and Setters
     public String getHouseholdName() {
@@ -167,5 +178,23 @@ public class Household {
             totalExpense += expense.calculateYearlyAmount();
         }
         return totalExpense;
+    }
+    
+    public void fetchExpenses() {
+        for (HouseholdMember member : members) {
+            for (Expense expense : member.getExpenses()) {
+                expenses.add(expense);
+            }
+        }
+    }
+    
+    public void fetchIncomes() {
+        for (HouseholdMember member : members) {
+            if (member instanceof Independent) {
+                for (Income income : ((Independent) member).getIncome()) {
+                    incomes.add(income);
+                }
+            }
+        }
     }
 }

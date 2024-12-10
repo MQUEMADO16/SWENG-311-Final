@@ -7,7 +7,7 @@ public class GroceryExpense extends Expense {
     private int itemsCount;
 
     // Constructor
-    public GroceryExpense(String name, float amount, String dateDue, boolean recurring, String frequency, String storeName, int itemsCount) {
+    public GroceryExpense(String name, double amount, String dateDue, boolean recurring, String frequency, String storeName, int itemsCount) {
         super(name, amount, dateDue, recurring, frequency);
         
         this.storeName = storeName;

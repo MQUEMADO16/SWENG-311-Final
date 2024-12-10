@@ -117,6 +117,9 @@ public class GUI extends JFrame implements LoginListener {
     }
 
     public JPanel createMenuPanel(String username) {
+        household.fetchExpenses();
+        household.fetchIncomes();
+        
         JPanel menuPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between components
@@ -138,11 +141,11 @@ public class GUI extends JFrame implements LoginListener {
 
         // Monthly Income
         JLabel monthlyIncomeLabel = new JLabel("Monthly Income: ");
-        JLabel monthlyIncomeValue = new JLabel("$" + String.format("%.2f", household.getMonthlyIncome()));
+        JLabel monthlyIncomeValue = new JLabel("$" + String.format("%.2f", household.calculateMonthlyIncome()));
 
         // Monthly Expense
         JLabel monthlyExpenseLabel = new JLabel("Monthly Expense: ");
-        JLabel monthlyExpenseValue = new JLabel("$" + String.format("%.2f", household.getMonthlyExpense()));
+        JLabel monthlyExpenseValue = new JLabel("$" + String.format("%.2f", household.calculateMonthlyExpense()));
 
         // Spend Balance
         JLabel spendBalanceLabel = new JLabel("Spend Balance: ");
@@ -237,6 +240,9 @@ public class GUI extends JFrame implements LoginListener {
     }
 
     public JPanel createHouseholdEditPanel() {
+        
+        Household tempHousehold = new Household(household);    // Use if cancel, revert to old version
+        
         // Create the panel for editing the household details
         JPanel householdPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -354,6 +360,7 @@ public class GUI extends JFrame implements LoginListener {
 
         // Action listener for the cancel button
         cancelButton.addActionListener(e -> {
+            household = tempHousehold;
             switchPanel(createMenuPanel(username)); // Cancel and return to the main menu without making changes
         });
 
@@ -413,39 +420,6 @@ public class GUI extends JFrame implements LoginListener {
         JButton addButton = new JButton("Add Member");
         JButton cancelButton = new JButton("Cancel");
 
-        // Additional fields for dependent and independent
-        JLabel weeklyAllowanceLabel = new JLabel("Weekly Allowance:");
-        JTextField weeklyAllowanceField = new JTextField(20);
-        weeklyAllowanceField.setVisible(false); // Hide initially
-
-        JLabel incomeLabel = new JLabel("Income:");
-        JComboBox<String> incomeComboBox = new JComboBox<>();
-        incomeComboBox.setVisible(false); // Hide initially
-
-        JLabel weeklyDiscretionarySpendLabel = new JLabel("Weekly Discretionary Spend:");
-        JTextField weeklyDiscretionarySpendField = new JTextField(20);
-        weeklyDiscretionarySpendField.setVisible(false); // Hide initially
-
-        // Expenses dropdown for both
-        JLabel expensesLabel = new JLabel("Expense:");
-        JComboBox<String> expensesComboBox = new JComboBox<>();
-        for (Expense expense : household.getExpenses()) {
-            expensesComboBox.addItem(expense.getName());
-        }
-
-        // Expense buttons
-        JButton addExpenseButton = new JButton("Add Expense");
-        JButton editExpenseButton = new JButton("Edit Expense");
-        JButton removeExpenseButton = new JButton("Remove Expense");
-
-        // Income buttons (initially hidden)
-        JButton addIncomeButton = new JButton("Add Income");
-        JButton editIncomeButton = new JButton("Edit Income");
-        JButton removeIncomeButton = new JButton("Remove Income");
-        addIncomeButton.setVisible(false);
-        editIncomeButton.setVisible(false);
-        removeIncomeButton.setVisible(false);
-
         // Add components to the panel
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -469,62 +443,13 @@ public class GUI extends JFrame implements LoginListener {
         gbc.gridx = 1;
         addMemberPanel.add(memberTypeCombo, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        addMemberPanel.add(weeklyAllowanceLabel, gbc);
-
-        gbc.gridx = 1;
-        addMemberPanel.add(weeklyAllowanceField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        addMemberPanel.add(weeklyDiscretionarySpendLabel, gbc);
-
-        gbc.gridx = 1;
-        addMemberPanel.add(weeklyDiscretionarySpendField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        addMemberPanel.add(incomeLabel, gbc);
-
-        gbc.gridx = 1;
-        addMemberPanel.add(incomeComboBox, gbc);
-
-        // Expenses
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        addMemberPanel.add(expensesLabel, gbc);
-
-        gbc.gridx = 1;
-        addMemberPanel.add(expensesComboBox, gbc);
-
-        // Expense buttons panel
-        JPanel expenseButtonPanel = new JPanel(new FlowLayout());
-        expenseButtonPanel.add(addExpenseButton);
-        expenseButtonPanel.add(editExpenseButton);
-        expenseButtonPanel.add(removeExpenseButton);
-
-        gbc.gridx = 1;
-        gbc.gridy = 7;
-        addMemberPanel.add(expenseButtonPanel, gbc);
-
-        // Income buttons panel (hidden initially)
-        JPanel incomeButtonPanel = new JPanel(new FlowLayout());
-        incomeButtonPanel.add(addIncomeButton);
-        incomeButtonPanel.add(editIncomeButton);
-        incomeButtonPanel.add(removeIncomeButton);
-
-        gbc.gridx = 1;
-        gbc.gridy = 8;
-        addMemberPanel.add(incomeButtonPanel, gbc);
-
         // Panel for main action buttons
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(addButton);
         buttonPanel.add(cancelButton);
 
         gbc.gridx = 1;
-        gbc.gridy = 9;
+        gbc.gridy = 3;
         addMemberPanel.add(buttonPanel, gbc);
 
         // Action listener for the add member button
@@ -539,10 +464,9 @@ public class GUI extends JFrame implements LoginListener {
                     HouseholdMember newMember = null;
 
                     if (memberType.equals("Independent")) {
-                        newMember = new Independent(name, age, 0); // Default weeklyDiscretionarySpend = 0
-                        // Handle income and weeklyDiscretionarySpend
+                        newMember = new Independent(name, age, 0.0);
                     } else if (memberType.equals("Dependent")) {
-                        newMember = new Dependent(name, age, 0); // Default weeklyAllowance = 0
+                        newMember = new Dependent(name, age, 0.0);
                     }
 
                     if (newMember != null) {
@@ -563,84 +487,13 @@ public class GUI extends JFrame implements LoginListener {
             switchPanel(createHouseholdEditPanel()); // Switch back to the household edit panel without adding
         });
 
-        // Listener to change fields visibility based on selected member type
-        memberTypeCombo.addActionListener(e -> {
-            if ("Independent".equals(memberTypeCombo.getSelectedItem())) {
-                weeklyAllowanceField.setVisible(false);
-                incomeComboBox.setVisible(true); // Show income dropdown
-                weeklyDiscretionarySpendField.setVisible(true);
-                addIncomeButton.setVisible(true); // Show income buttons
-                editIncomeButton.setVisible(true);
-                removeIncomeButton.setVisible(true);
-            } else {
-                weeklyAllowanceField.setVisible(true); // Show weekly allowance for Dependent
-                incomeComboBox.setVisible(false);
-                weeklyDiscretionarySpendField.setVisible(false);
-                addIncomeButton.setVisible(false); // Hide income buttons
-                editIncomeButton.setVisible(false);
-                removeIncomeButton.setVisible(false);
-            }
-        });
-
-        // Action listeners for the expense buttons
-        addExpenseButton.addActionListener(e -> {
-            // Add logic to show a dialog or panel to add an expense
-            // TO BE IMPLEMENTED
-        });
-
-        editExpenseButton.addActionListener(e -> {
-            // Add logic to show a dialog or panel to edit selected expense
-            String selectedExpense = (String) expensesComboBox.getSelectedItem();
-            if (selectedExpense != null) {
-                // Edit selected expense
-                // TO BE IMPLEMENTED
-            }
-        });
-
-        removeExpenseButton.addActionListener(e -> {
-            String selectedExpense = (String) expensesComboBox.getSelectedItem();
-            if (selectedExpense != null) {
-                // Remove selected expense from the list and the member
-                HouseholdMember member = household.getMember(nameField.getText());
-                member.removeExpense(selectedExpense);
-                // Update expensesComboBox by removing the selected expense
-                expensesComboBox.removeItem(selectedExpense);
-                JOptionPane.showMessageDialog(addMemberPanel, "Expense removed successfully!");
-            }
-        });
-        
-        // Action listeners for the income buttons
-        addIncomeButton.addActionListener(e -> {
-            // Add logic to show a dialog or panel to add an expense
-            // TO BE IMPLEMENTED
-        });
-
-        editIncomeButton.addActionListener(e -> {
-            // Add logic to show a dialog or panel to edit selected expense
-            String selectedExpense = (String) expensesComboBox.getSelectedItem();
-            if (selectedExpense != null) {
-                // Edit selected expense
-                // TO BE IMPLEMENTED
-            }
-        });
-
-        removeIncomeButton.addActionListener(e -> {
-            String selectedIncome = (String) incomeComboBox.getSelectedItem();
-            if (selectedIncome != null) {
-                // Remove selected expense from the list and the member
-                Independent member = (Independent) household.getMember(nameField.getText());
-                member.removeIncome(selectedIncome);
-                // Update expensesComboBox by removing the selected expense
-                expensesComboBox.removeItem(selectedIncome);
-                JOptionPane.showMessageDialog(addMemberPanel, "Income removed successfully!");
-            }
-        });
-
         return addMemberPanel;
     }
 
     public JPanel createEditMemberPanel(String memberName) {
-        HouseholdMember selectedMember = household.getMember(memberName);
+        HouseholdMember member = household.getMember(memberName);
+
+        mainFrame.setSize(800, 700);
 
         JPanel editMemberPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -648,18 +501,42 @@ public class GUI extends JFrame implements LoginListener {
 
         // Labels and text fields for member details
         JLabel nameLabel = new JLabel("Name:");
-        JTextField nameField = new JTextField(20);
-        nameField.setText(selectedMember.getName());
+        JTextField nameField = new JTextField(member.getName(), 20);
 
         JLabel ageLabel = new JLabel("Age:");
-        JTextField ageField = new JTextField(20);
-        ageField.setText(String.valueOf(selectedMember.getAge()));
+        JTextField ageField = new JTextField(String.valueOf(member.getAge()), 20);
 
-        JLabel memberTypeLabel = new JLabel("Member Type:");
-        JComboBox<String> memberTypeCombo = new JComboBox<>(new String[]{"Independent", "Dependent"});
-        memberTypeCombo.setSelectedItem(selectedMember instanceof Independent ? "Independent" : "Dependent");
+        // Expense list (always visible)
+        JComboBox<String> expenseBox = new JComboBox<>();
+        for (Expense expense : member.getExpenses()) {
+            expenseBox.addItem(expense.getName());
+        }
 
-        // Layout for adding components
+        // Income list (only visible for Independent members)
+        JComboBox<String> incomeBox = new JComboBox<>();
+        if (member instanceof Independent) {
+            Independent independentMember = (Independent) member;
+            for (Income income : independentMember.getIncome()) {
+                incomeBox.addItem(income.getSource());
+            }
+            incomeBox.setVisible(true); // Make incomeBox visible if Independent
+        } else {
+            incomeBox.setVisible(false); // Hide incomeBox if not Independent
+        }
+
+        // Add and Cancel buttons
+        JButton saveButton = new JButton("Save Member");
+        JButton cancelButton = new JButton("Cancel");
+
+        // Add and Remove buttons for Expenses
+        JButton addExpenseButton = new JButton("Add Expense");
+        JButton removeExpenseButton = new JButton("Remove Expense");
+
+        // Add and Remove buttons for Incomes (only visible for Independent members)
+        JButton addIncomeButton = new JButton("Add Income");
+        JButton removeIncomeButton = new JButton("Remove Income");
+
+        // Add components to the panel
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
@@ -675,70 +552,632 @@ public class GUI extends JFrame implements LoginListener {
         gbc.gridx = 1;
         editMemberPanel.add(ageField, gbc);
 
+        // Always visible expense box
         gbc.gridx = 0;
         gbc.gridy = 2;
-        editMemberPanel.add(memberTypeLabel, gbc);
+        editMemberPanel.add(new JLabel("Expense:"), gbc);
 
         gbc.gridx = 1;
-        editMemberPanel.add(memberTypeCombo, gbc);
+        editMemberPanel.add(expenseBox, gbc);
 
-        // Save and Cancel buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton saveButton = new JButton("Save Changes");
-        JButton cancelButton = new JButton("Cancel");
+        // Income box (conditionally visible)
+        if (member instanceof Independent) {
+            gbc.gridx = 0;
+            gbc.gridy = 3;
+            editMemberPanel.add(new JLabel("Income:"), gbc);
+
+            gbc.gridx = 1;
+            editMemberPanel.add(incomeBox, gbc);
+        }
+
+        // Panel for buttons at the bottom
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 2, 10, 10));  // GridLayout with two columns
+        buttonPanel.add(addExpenseButton);
+        buttonPanel.add(removeExpenseButton);
+
+        if (member instanceof Independent) {
+            buttonPanel.add(addIncomeButton);
+            buttonPanel.add(removeIncomeButton);
+        }
 
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 1;
+        gbc.gridy = 4;
         editMemberPanel.add(buttonPanel, gbc);
 
         // Action listener for the save button
         saveButton.addActionListener(e -> {
-            String name = nameField.getText().trim();
-            String ageText = ageField.getText().trim();
-            String memberType = (String) memberTypeCombo.getSelectedItem();
-
-            if (!name.isEmpty() && !ageText.isEmpty()) {
-                try {
-                    int age = Integer.parseInt(ageText);
-
-                    // Update the member based on selected type
-                    if (memberType.equals("Independent") && !(selectedMember instanceof Independent)) {
-                        Independent updatedMember = new Independent(name, age, 0); // Default weeklyDiscretionSpend = 0
-                        household.removeMember(selectedMember);
-                        household.addMember(updatedMember);
-                    } else if (memberType.equals("Dependent") && !(selectedMember instanceof Dependent)) {
-                        Dependent updatedMember = new Dependent(name, age, 0); // Default weeklyAllowance = 0
-                        household.removeMember(selectedMember);
-                        household.addMember(updatedMember);
-                    } else {
-                        // If no type change, just update the details
-                        selectedMember.setName(name);
-                        selectedMember.setAge(age);
-                    }
-
-                    JOptionPane.showMessageDialog(editMemberPanel, "Member details updated successfully!");
-                    switchPanel(createHouseholdEditPanel());  // Return to the household edit panel
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(editMemberPanel, "Please enter a valid age.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } else {
-                JOptionPane.showMessageDialog(editMemberPanel, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
-            }
+            switchPanel(createHouseholdEditPanel());
         });
 
         // Action listener for the cancel button
         cancelButton.addActionListener(e -> {
-            switchPanel(createHouseholdEditPanel());  // Return to the household edit panel without saving
+            switchPanel(createHouseholdEditPanel()); // Switch back to the household edit panel without saving
+        });
+
+        // Action listener for the add expense button
+        addExpenseButton.addActionListener(e -> {
+            switchPanel(createAddExpensePanel(member));
+        });
+
+        // Action listener for the remove expense button
+        removeExpenseButton.addActionListener(e -> {
+            // Remove the selected expense if an item is selected
+            if (expenseBox.getSelectedItem() != null) {
+                String selectedExpense = (String) expenseBox.getSelectedItem();
+                member.removeExpense(selectedExpense); // Remove expense from member
+                // Update the expense box to reflect the changes
+                expenseBox.removeItem(selectedExpense);
+            }
+        });
+
+        // Action listener for the add income button (only for Independent members)
+        addIncomeButton.addActionListener(e -> {
+            switchPanel(createAddIncomePanel(member));
+        });
+
+        // Action listener for the remove income button (only for Independent members)
+        removeIncomeButton.addActionListener(e -> {
+            if (incomeBox.getSelectedItem() != null) {
+                String selectedIncome = (String) incomeBox.getSelectedItem();
+                if (member instanceof Independent) {
+                    Independent independentMember = (Independent) member;
+                    independentMember.removeIncome(selectedIncome); // Remove income from Independent member
+                    // Update the income box to reflect the changes
+                    incomeBox.removeItem(selectedIncome);
+                }
+            }
         });
 
         return editMemberPanel;
     }
+    
+    public JPanel createAddExpensePanel(HouseholdMember member) {
+        JPanel expensePanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
 
+        // Expense type
+        JLabel typeLabel = new JLabel("Expense Type:");
+        JComboBox<String> expenseTypeComboBox = new JComboBox<>(new String[]{"n/a", "Loan", "Subscription", "Insurance", "Grocery", "Utility"});
+
+        // Shared attributes
+        JLabel nameLabel = new JLabel("Name:");
+        JTextField nameField = new JTextField(20);
+
+        JLabel amountLabel = new JLabel("Amount:");
+        JTextField amountField = new JTextField(20);
+
+        JLabel dateDueLabel = new JLabel("Date Due:");
+        JTextField dateDueField = new JTextField(20);
+
+        JLabel frequencyLabel = new JLabel("Frequency:");
+        JTextField frequencyField = new JTextField(20);
+
+        JLabel recurringLabel = new JLabel("Recurring:");
+        JCheckBox recurringCheckBox = new JCheckBox();
+
+        // Initially disable the frequency field
+        frequencyField.setEnabled(false);
+
+        // Add shared fields to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        expensePanel.add(typeLabel, gbc);
+        gbc.gridx = 1;
+        expensePanel.add(expenseTypeComboBox, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        expensePanel.add(nameLabel, gbc);
+        gbc.gridx = 1;
+        expensePanel.add(nameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        expensePanel.add(amountLabel, gbc);
+        gbc.gridx = 1;
+        expensePanel.add(amountField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        expensePanel.add(dateDueLabel, gbc);
+        gbc.gridx = 1;
+        expensePanel.add(dateDueField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        expensePanel.add(frequencyLabel, gbc);
+        gbc.gridx = 1;
+        expensePanel.add(frequencyField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        expensePanel.add(recurringLabel, gbc);
+        gbc.gridx = 1;
+        expensePanel.add(recurringCheckBox, gbc);
+
+        // Add an item listener to the recurring checkbox
+        recurringCheckBox.addItemListener(e -> {
+            if (recurringCheckBox.isSelected()) {
+                frequencyField.setEnabled(true); // Enable frequency field when recurring
+            } else {
+                frequencyField.setEnabled(false); // Disable frequency field when not recurring
+            }
+        });
+
+        // Buttons panel
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Continue");
+        JButton cancelButton = new JButton("Cancel");
+
+        // Add action listeners for the buttons
+        submitButton.addActionListener(e -> {
+            String selectedType = (String) expenseTypeComboBox.getSelectedItem();
+            String name = nameField.getText().trim();
+            double amount = Double.parseDouble(amountField.getText().trim());
+            String dateDue = dateDueField.getText().trim();
+            String frequency = recurringCheckBox.isSelected() ? frequencyField.getText().trim() : "";
+
+            try {
+                Expense expense = new Expense(name, amount, dateDue, recurringCheckBox.isSelected(), frequency);
+
+                switch (selectedType) {
+                    case "Loan":
+                        switchPanel(createAddLoanExpensePanel(member, expense));
+                        break;
+                    case "Subscription":
+                        switchPanel(createAddSubscriptionExpensePanel(member, expense));
+                        break;
+                    case "Insurance":
+                        switchPanel(createAddInsuranceExpensePanel(member, expense));
+                        break;
+                    case "Grocery":
+                        switchPanel(createAddGroceryExpensePanel(member, expense));
+                        break;
+                    case "Utility":
+                        switchPanel(createAddUtilityExpensePanel(member, expense));
+                        break;
+                    case "n/a":
+                        member.addExpense(expense);
+                        switchPanel(createEditMemberPanel(member.getName()));
+                        break;
+                }
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(expensePanel, "Amount must be a valid number.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> {
+            switchPanel(createEditMemberPanel(member.getName()));
+        });
+
+        buttonsPanel.add(submitButton);
+        buttonsPanel.add(cancelButton);
+
+        // Add buttons panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        expensePanel.add(buttonsPanel, gbc);
+
+        return expensePanel;
+    }
+    
+    public JPanel createAddLoanExpensePanel(HouseholdMember member, Expense expense) {
+        JPanel loanPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Loan fields
+        JLabel loanAmountLabel = new JLabel("Loan Amount:");
+        JTextField loanAmountField = new JTextField(20);
+
+        JLabel lenderLabel = new JLabel("Lender:");
+        JTextField lenderField = new JTextField(20);
+
+        JLabel loanTypeLabel = new JLabel("Loan Type:");
+        JTextField loanTypeField = new JTextField(20);
+
+        JLabel interestRateLabel = new JLabel("Interest Rate (%):");
+        JTextField interestRateField = new JTextField(20);
+
+        JLabel leftToPayLabel = new JLabel("Left to Pay:");
+        JTextField leftToPayField = new JTextField(20);
+
+        // Add fields to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        loanPanel.add(loanAmountLabel, gbc);
+        gbc.gridx = 1;
+        loanPanel.add(loanAmountField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        loanPanel.add(lenderLabel, gbc);
+        gbc.gridx = 1;
+        loanPanel.add(lenderField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        loanPanel.add(loanTypeLabel, gbc);
+        gbc.gridx = 1;
+        loanPanel.add(loanTypeField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        loanPanel.add(interestRateLabel, gbc);
+        gbc.gridx = 1;
+        loanPanel.add(interestRateField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        loanPanel.add(leftToPayLabel, gbc);
+        gbc.gridx = 1;
+        loanPanel.add(leftToPayField, gbc);
+
+        // Submit button
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Submit");
+
+        submitButton.addActionListener(e -> {
+            // Implement the event handler logic here
+            try {
+                double loanAmount = Double.parseDouble(loanAmountField.getText().trim());
+                String lender = lenderField.getText().trim();
+                String loanType = loanTypeField.getText().trim();
+                double interestRate = Double.parseDouble(interestRateField.getText().trim());
+                double leftToPay = Double.parseDouble(leftToPayField.getText().trim());
+
+                // Create a new LoanExpense object or add it to the member's expenses
+                LoanExpense loanExpense = new LoanExpense(expense.getName(), expense.getAmount(), expense.getDateDue(), expense.isRecurring(), expense.getFrequency(), loanAmount, lender, loanType, interestRate, leftToPay);
+                member.addExpense(loanExpense);
+
+                // Switch back to the member edit panel or other logic
+                switchPanel(createEditMemberPanel(member.getName()));
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(loanPanel, "Please enter valid numbers for the loan details.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        buttonsPanel.add(submitButton);
+
+        // Add the buttons panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        loanPanel.add(buttonsPanel, gbc);
+
+        return loanPanel;
+    }
+    
+    public JPanel createAddSubscriptionExpensePanel(HouseholdMember member, Expense expense) {
+        JPanel subscriptionPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Subscription fields
+        JLabel subscriptionTypeLabel = new JLabel("Subscription Type:");
+        JTextField subscriptionTypeField = new JTextField(20);
+
+        JLabel paymentMethodLabel = new JLabel("Payment Method:");
+        JTextField paymentMethodField = new JTextField(20);
+
+        JLabel autoRenewalLabel = new JLabel("Auto Renewal:");
+        JCheckBox autoRenewalCheckBox = new JCheckBox();
+
+        // Add fields to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        subscriptionPanel.add(subscriptionTypeLabel, gbc);
+        gbc.gridx = 1;
+        subscriptionPanel.add(subscriptionTypeField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        subscriptionPanel.add(paymentMethodLabel, gbc);
+        gbc.gridx = 1;
+        subscriptionPanel.add(paymentMethodField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        subscriptionPanel.add(autoRenewalLabel, gbc);
+        gbc.gridx = 1;
+        subscriptionPanel.add(autoRenewalCheckBox, gbc);
+
+        // Submit button
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Submit");
+
+        submitButton.addActionListener(e -> {
+            // Implement the event handler logic here
+            try {
+                String subscriptionType = subscriptionTypeField.getText().trim();
+                String paymentMethod = paymentMethodField.getText().trim();
+                boolean autoRenewal = autoRenewalCheckBox.isSelected();
+
+                SubscriptionExpense subscriptionExpense = new SubscriptionExpense(expense.getName(), expense.getAmount(), expense.getDateDue(), expense.isRecurring(), expense.getFrequency(), subscriptionType, paymentMethod, autoRenewal);
+
+                // Add the subscription expense to the member
+                member.addExpense(subscriptionExpense);
+
+                // Switch back to the member edit panel or other logic
+                switchPanel(createEditMemberPanel(member.getName()));
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(subscriptionPanel, "Error while submitting subscription expense.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        buttonsPanel.add(submitButton);
+
+        // Add the buttons panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        subscriptionPanel.add(buttonsPanel, gbc);
+
+        return subscriptionPanel;
+    }
+    
+    public JPanel createAddInsuranceExpensePanel(HouseholdMember member, Expense expense) {
+        JPanel insurancePanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Insurance fields
+        JLabel providerLabel = new JLabel("Provider:");
+        JTextField providerField = new JTextField(20);
+
+        JLabel insuranceTypeLabel = new JLabel("Insurance Type:");
+        JTextField insuranceTypeField = new JTextField(20);
+
+        JLabel coverageAmountLabel = new JLabel("Coverage Amount:");
+        JTextField coverageAmountField = new JTextField(20);
+
+        JLabel premiumRateLabel = new JLabel("Premium Rate:");
+        JTextField premiumRateField = new JTextField(20);
+
+        // Add fields to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        insurancePanel.add(providerLabel, gbc);
+        gbc.gridx = 1;
+        insurancePanel.add(providerField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        insurancePanel.add(insuranceTypeLabel, gbc);
+        gbc.gridx = 1;
+        insurancePanel.add(insuranceTypeField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        insurancePanel.add(coverageAmountLabel, gbc);
+        gbc.gridx = 1;
+        insurancePanel.add(coverageAmountField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        insurancePanel.add(premiumRateLabel, gbc);
+        gbc.gridx = 1;
+        insurancePanel.add(premiumRateField, gbc);
+
+        // Submit button
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Submit");
+
+        submitButton.addActionListener(e -> {
+            // Implement the event handler logic here
+            try {
+                String provider = providerField.getText().trim();
+                String insuranceType = insuranceTypeField.getText().trim();
+                double coverageAmount = Double.parseDouble(coverageAmountField.getText().trim());
+                double premiumRate = Double.parseDouble(premiumRateField.getText().trim());
+
+                InsuranceExpense insuranceExpense = new InsuranceExpense( expense.getName(), expense.getAmount(), expense.getDateDue(), expense.isRecurring(), expense.getFrequency(), provider, insuranceType, coverageAmount, premiumRate);
+
+                // Add the insurance expense to the member
+                member.addExpense(insuranceExpense);
+
+                // Switch back to the member edit panel or other logic
+                switchPanel(createEditMemberPanel(member.getName()));
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(insurancePanel, "Coverage amount and premium rate must be valid numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        buttonsPanel.add(submitButton);
+
+        // Add the buttons panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        insurancePanel.add(buttonsPanel, gbc);
+
+        return insurancePanel;
+    }
+    
+    public JPanel createAddGroceryExpensePanel(HouseholdMember member, Expense expense) {
+        JPanel groceryPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Grocery fields
+        JLabel storeNameLabel = new JLabel("Store Name:");
+        JTextField storeNameField = new JTextField(20);
+
+        JLabel itemsCountLabel = new JLabel("Items Count:");
+        JTextField itemsCountField = new JTextField(20);
+
+        // Add fields to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        groceryPanel.add(storeNameLabel, gbc);
+        gbc.gridx = 1;
+        groceryPanel.add(storeNameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        groceryPanel.add(itemsCountLabel, gbc);
+        gbc.gridx = 1;
+        groceryPanel.add(itemsCountField, gbc);
+
+        // Submit button
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Submit");
+
+        submitButton.addActionListener(e -> {
+            // Implement the event handler logic here
+            try {
+                String storeName = storeNameField.getText().trim();
+                int itemsCount = Integer.parseInt(itemsCountField.getText().trim());
+
+                GroceryExpense groceryExpense = new GroceryExpense(expense.getName(), expense.getAmount(), expense.getDateDue(), expense.isRecurring(),expense.getFrequency(), storeName, itemsCount);
+
+                // Add the grocery expense to the member
+                member.addExpense(groceryExpense);
+
+                // Switch back to the member edit panel or other logic
+                switchPanel(createEditMemberPanel(member.getName()));
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(groceryPanel, "Items count must be a valid number.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        buttonsPanel.add(submitButton);
+
+        // Add the buttons panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        groceryPanel.add(buttonsPanel, gbc);
+
+        return groceryPanel;
+    }
+    
+    public JPanel createAddUtilityExpensePanel(HouseholdMember member, Expense expense) {
+        JPanel utilityPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Utility fields
+        JLabel providerLabel = new JLabel("Utility Provider:");
+        JTextField providerField = new JTextField(20);
+
+        // Add fields to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        utilityPanel.add(providerLabel, gbc);
+        gbc.gridx = 1;
+        utilityPanel.add(providerField, gbc);
+
+        // Submit button
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Submit");
+
+        submitButton.addActionListener(e -> {
+            // Implement the event handler logic here
+            String provider = providerField.getText().trim();
+
+            if (provider.isEmpty()) {
+                JOptionPane.showMessageDialog(utilityPanel, "Provider name cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            UtilityExpense utilityExpense = new UtilityExpense(expense.getName(), expense.getAmount(), expense.getDateDue(), expense.isRecurring(), expense.getFrequency(), provider);
+
+            // Add the utility expense to the member
+            member.addExpense(utilityExpense);
+
+            // Switch back to the member edit panel or other logic
+            switchPanel(createEditMemberPanel(member.getName()));
+        });
+
+        buttonsPanel.add(submitButton);
+
+        // Add the buttons panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        utilityPanel.add(buttonsPanel, gbc);
+
+        return utilityPanel;
+    }
+    
+    public JPanel createAddIncomePanel(HouseholdMember member) {
+        // Create the main panel
+        JPanel addIncomePanel = new JPanel();
+        addIncomePanel.setLayout(new BoxLayout(addIncomePanel, BoxLayout.Y_AXIS));
+
+        // Create and add source input
+        JLabel sourceLabel = new JLabel("Source:");
+        JTextField sourceField = new JTextField(20);
+        addIncomePanel.add(sourceLabel);
+        addIncomePanel.add(sourceField);
+
+        // Create and add amount input
+        JLabel amountLabel = new JLabel("Amount:");
+        JTextField amountField = new JTextField(20);
+        addIncomePanel.add(amountLabel);
+        addIncomePanel.add(amountField);
+
+        // Create and add frequency input
+        JLabel frequencyLabel = new JLabel("Frequency (e.g., Monthly, Weekly):");
+        JTextField frequencyField = new JTextField(20);
+        addIncomePanel.add(frequencyLabel);
+        addIncomePanel.add(frequencyField);
+
+        // Create Save and Cancel buttons
+        JPanel buttonPanel = new JPanel();
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+
+        // Action for Save Button
+        saveButton.addActionListener(e -> {
+            String source = sourceField.getText();
+            double amount;
+            String frequency = frequencyField.getText();
+
+            // Handle invalid amount input
+            try {
+                amount = Double.parseDouble(amountField.getText());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(addIncomePanel, "Please enter a valid amount.");
+                return;
+            }
+
+            // Create the Income object
+            Income newIncome = new Income(source, amount, frequency);
+
+            // Add the income to the member's list or handle it as needed
+            ((Independent) member).addIncome(newIncome);
+
+            JOptionPane.showMessageDialog(addIncomePanel, "Income saved successfully!");
+
+            switchPanel(createEditMemberPanel(member.getName()));
+        });
+
+        // Action for Cancel Button
+        cancelButton.addActionListener(e -> {
+            switchPanel(createEditMemberPanel(member.getName()));
+            JOptionPane.showMessageDialog(addIncomePanel, "Action cancelled.");
+        });
+
+        // Add buttons to the panel
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+        addIncomePanel.add(buttonPanel);
+
+        return addIncomePanel;
+    }
+            
     public static void main(String[] args) {
         new GUI();
     }

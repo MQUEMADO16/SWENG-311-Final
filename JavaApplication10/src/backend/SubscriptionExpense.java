@@ -8,7 +8,7 @@ public class SubscriptionExpense extends Expense {
     private boolean autoRenewal;
 
     // Constructor
-    public SubscriptionExpense(String name, float amount, String dateDue, boolean recurring, String frequency, String subscriptionType, String paymentMethod, boolean autoRenewal) {
+    public SubscriptionExpense(String name, double amount, String dateDue, boolean recurring, String frequency, String subscriptionType, String paymentMethod, boolean autoRenewal) {
         super(name, amount, dateDue, recurring, frequency);
         
         this.subscriptionType = subscriptionType;

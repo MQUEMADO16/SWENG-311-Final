@@ -6,7 +6,7 @@ public class UtilityExpense extends Expense {
     private String provider;
 
     // Constructor
-    public UtilityExpense(String name, float amount, String dateDue, boolean recurring, String frequency, String provider) {
+    public UtilityExpense(String name, double amount, String dateDue, boolean recurring, String frequency, String provider) {
         super(name, amount, dateDue, recurring, frequency);
         
         this.provider = provider;
