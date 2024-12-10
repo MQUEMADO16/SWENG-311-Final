@@ -1331,19 +1331,39 @@ public class GUI extends JFrame implements LoginListener {
 
             // Generate the selected summary
             if ("Monthly".equals(selectedSummaryType)) {
-                summaryTextArea.setText("MONTHLY SUMMARY\n\n" +
-                        "Total Income: " + budget.getHousehold().calculateMonthlyIncome() + "\n" +
-                        "Total Expenses: " + budget.getHousehold().calculateMonthlyExpense() + "\n" +
-                        "Savings: " + budget.getHousehold().getSavings().getAmountSaved() + "\n" +
-                        "Needs (50%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.50)) + "\n" +
-                        "Wants (30%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.30)));
+                if ("50-30-20".equals(selectedRule)) {
+                    summaryTextArea.setText("MONTHLY SUMMARY\n\n" +
+                            "Total Income: " + budget.getHousehold().calculateMonthlyIncome() + "\n" +
+                            "Total Expenses: " + budget.getHousehold().calculateMonthlyExpense() + "\n" +
+                            "Savings: " + budget.getHousehold().getSavings().getAmountSaved() + "\n" +
+                            "Needs (50%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.50)) + "\n" +
+                            "Wants (30%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.30)));
+                } else if ("80-20".equals(selectedRule)) {
+                    summaryTextArea.setText("MONTHLY SUMMARY\n\n" +
+                            "Total Income: " + budget.getHousehold().calculateMonthlyIncome() + "\n" +
+                            "Total Expenses: " + budget.getHousehold().calculateMonthlyExpense() + "\n" +
+                            "Savings: " + budget.getHousehold().getSavings().getAmountSaved() + "\n" +
+                            "Needs (80%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.80)) + "\n" +
+                            "Wants (20%): " + String.format("%.2f", (budget.getHousehold().calculateMonthlyIncome() * 0.20)));
+                }
+
             } else if ("Yearly".equals(selectedSummaryType)) {
-                summaryTextArea.setText("YEARLY SUMMARY\n\n" +
-                        "Total Income: " + budget.getHousehold().calculateYearlyIncome() + "\n" +
-                        "Total Expenses: " + budget.getHousehold().calculateYearlyExpense() + "\n" +
-                        "Savings: " + (budget.getHousehold().getSavings().getAmountSaved() * 12) + "\n" +
-                        "Needs (50%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.50)) + "\n" +
-                        "Wants (30%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.30)));
+                if ("50-30-20".equals(selectedRule)) {
+                    summaryTextArea.setText("YEARLY SUMMARY\n\n" +
+                            "Total Income: " + budget.getHousehold().calculateYearlyIncome() + "\n" +
+                            "Total Expenses: " + budget.getHousehold().calculateYearlyExpense() + "\n" +
+                            "Savings: " + (budget.getHousehold().getSavings().getAmountSaved() * 12) + "\n" +
+                            "Needs (50%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.50)) + "\n" +
+                            "Wants (30%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.30)));
+                } else if ("80-20".equals(selectedRule)) {
+                    summaryTextArea.setText("YEARLY SUMMARY\n\n" +
+                            "Total Income: " + budget.getHousehold().calculateYearlyIncome() + "\n" +
+                            "Total Expenses: " + budget.getHousehold().calculateYearlyExpense() + "\n" +
+                            "Savings: " + (budget.getHousehold().getSavings().getAmountSaved() * 12) + "\n" +
+                            "Needs (80%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.80)) + "\n" +
+                            "Wants (20%): " + String.format("%.2f", (budget.getHousehold().calculateYearlyIncome() * 0.20)));
+                }
+
             }
         });
 
